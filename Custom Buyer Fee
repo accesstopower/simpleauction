@@ -1,0 +1,26 @@
+add_action( 'woocommerce_cart_calculate_fees', 'custom_auction_charge' );   
+ 
+function custom_auction_charge( $cart_object ) {
+ 
+    $spfee = 0.00; // initialize special fee
+    $spfeeperprod = 0.20; //special fee per product
+ 
+    foreach ( $cart_object->cart_contents as $key => $value ) {
+ 
+        $proid = $value['product_id']; //get the product id from cart
+        $quantiy = $value['quantity']; //get quantity from cart
+        $product = wc_get_product( $proid  ); //
+ 
+        if('auction' == $product->get_type()) :
+ 
+            if ($product->get_auction_closed() == 2){
+                    $itmprice = $value['data']->get_auction_current_bid(); //get product price  
+                    $spfee = $spfee + $itmprice * $quantiy * $spfeeperprod;
+            }       
+        endif;  
+ 
+    }
+    if($spfee > 0 ) {
+        WC()->cart->add_fee( 'Buyers Premium', $spfee, true, 'standard' );
+    }
+}
